@@ -1,0 +1,263 @@
+%
+% This is the LaTeX template file for lecture notes for EE 382C/EE 361C.
+%
+% To familiarize yourself with this template, the body contains
+% some examples of its use.  Look them over.  Then you can
+% run LaTeX on this file.  After you have LaTeXed this file then
+% you can look over the result either by printing it out with
+% dvips or using xdvi.
+%
+% This template is based on the template for Prof. Sinclair's CS 270.
+
+\documentclass[twoside]{article}
+\usepackage{graphics,algorithm,algorithmicx,amsfonts,algpseudocode}
+\setlength{\oddsidemargin}{0.25 in}
+\setlength{\evensidemargin}{-0.25 in}
+\setlength{\topmargin}{-0.6 in}
+\setlength{\textwidth}{6.5 in}
+\setlength{\textheight}{8.5 in}
+\setlength{\headsep}{0.75 in}
+\setlength{\parindent}{0 in}
+\setlength{\parskip}{0.1 in}
+
+%
+% The following commands set up the lecnum (lecture number)
+% counter and make various numbering schemes work relative
+% to the lecture number.
+%
+\newcounter{lecnum}
+\renewcommand{\thepage}{\thelecnum-\arabic{page}}
+\renewcommand{\thesection}{\thelecnum.\arabic{section}}
+\renewcommand{\theequation}{\thelecnum.\arabic{equation}}
+\renewcommand{\thefigure}{\thelecnum.\arabic{figure}}
+\renewcommand{\thetable}{\thelecnum.\arabic{table}}
+
+%
+% The following macro is used to generate the header.
+%
+\newcommand{\lecture}[4]{
+   \pagestyle{myheadings}
+   \thispagestyle{plain}
+   \newpage
+   \setcounter{lecnum}{#1}
+   \setcounter{page}{1}
+   \noindent
+   \begin{center}
+   \framebox{
+      \vbox{\vspace{2mm}
+    \hbox to 6.28in { {\bf EE 382V: Parallel Algorithms
+                        \hfill Fall 2017} }
+       \vspace{4mm}
+       \hbox to 6.28in { {\Large \hfill Lecture #1: #2  \hfill} }
+       \vspace{2mm}
+       \hbox to 6.28in { {\it Lecturer: #3 \hfill Scribe: #4} }
+      \vspace{2mm}}
+   }
+   \end{center}
+   \markboth{Lecture #1: #2}{Lecture #1: #2}
+   %{\bf Disclaimer}: {\it These notes have not been subjected to the
+   %usual scrutiny reserved for formal publications.  They may be distributed
+   %outside this class only with the permission of the Instructor.}
+   \vspace*{4mm}
+}
+
+%
+% Convention for citations is authors' initials followed by the year.
+% For example, to cite a paper by Leighton and Maggs you would type
+% \cite{LM89}, and to cite a paper by Strassen you would type \cite{S69}.
+% (To avoid bibliography problems, for now we redefine the \cite command.)
+% Also commands that create a suitable format for the reference list.
+\renewcommand{\cite}[1]{[#1]}
+\def\beginrefs{\begin{list}%
+        {[\arabic{equation}]}{\usecounter{equation}
+         \setlength{\leftmargin}{2.0truecm}\setlength{\labelsep}{0.4truecm}%
+         \setlength{\labelwidth}{1.6truecm}}}
+\def\endrefs{\end{list}}
+\def\bibentry#1{\item[\hbox{[#1]}]}
+
+%Use this command for a figure; it puts a figure in wherever you want it.
+%usage: \fig{NUMBER}{SPACE-IN-INCHES}{CAPTION}
+\newcommand{\fig}[3]{
+			\vspace{#2 in}
+			\begin{center}
+			Figure \thelecnum.#1:~#3
+			\end{center}
+	}
+% Use these for theorems, lemmas, proofs, etc.
+\newtheorem{theorem}{Theorem}[lecnum]
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{claim}[theorem]{Claim}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{definition}[theorem]{Definition}
+\newenvironment{proof}{{\bf Proof:}}{\hfill\rule{2mm}{2mm}}
+
+% **** IF YOU WANT TO DEFINE ADDITIONAL MACROS FOR YOURSELF, PUT THEM HERE:
+
+\begin{document}
+%FILL IN THE RIGHT INFO.
+%\lecture{**LECTURE-NUMBER**}{**DATE**}{**LECTURER**}{**SCRIBE**}
+\lecture{3}{August 19}{Vijay Garg}{Howie Benefiel}
+%\footnotetext{These notes are partially based on those of Nigel Mansell.}
+
+\section{Lamport Clocks}
+The motivation for this is that we need some mechanism to tell us $e \rightarrow f$.
+
+\begin{definition}\label{def:logicalclock}
+A map $C$ is a logical clock if $c: E \rightarrow \mathbb{N}$ s.t. $e \rightarrow f \Rightarrow c(e) < c(f)$
+\end{definition}
+
+
+Notice in Definition \ref{def:logicalclock} that $C$ is a unidirectional material conditional,
+not bidirectional.
+Numbers should monotonically increase with a process
+Every process should send a number when it receives an event - take $max(P_1, P_n)$ then add 1.
+
+\subsection{Lamport Clock Algorithm}
+
+\begin{algorithm}
+\caption{Calculate a logical clock for a distributed system}
+\begin{algorithmic}
+% \Comment{For \underline{$P_i$}}
+  \State $c \gets 0$
+\Comment{\underline{Initialization}}
+  \State $c \gets c+1$
+\Comment{\underline{on internal event}}
+  \State $c \gets c+1$
+\Comment{\underline{on send event}}
+  \State Send c with message
+  \State $c \gets max(c, d) + 1$
+\Comment{\underline{on receive of message with d as clock}}
+
+\end{algorithmic}
+\end{algorithm}
+
+This algorithm will always return a logical clock which will monotonically increase with events in the system.
+
+\section{Vector Clocks}
+
+\subsection{Motivation}
+Using the simple Lamport Clock, we cannot infer that e happened before f.
+That is because of the unidirectional implication in the definition.
+To get a complete ordering, can we come up with a map where
+\begin{definition}\label{def:vectorclockconstraint}
+$V: E \rightarrow \mathbb{N}^n $ s.t. $e \rightarrow f \Leftrightarrow V(e) < V(f)$
+
+\end{definition}
+Notice in Definition \ref{def:vectorclock} that we have if and only if.
+This means that if we have the values $V(e)$ and $V(f)$, we can determine whether e happened before f.
+
+
+\begin{definition}\label{def:vectorclock}
+  $ x, y $ are vectors in n-dimension \\
+  \[ \forall i: x[i] \le y[i] \wedge \exists j: x[j] < y[j] \]
+  % \[ \wedge \]
+  % \[ \exists j: x[j] < y[j] \]
+\end{definition}
+As an example of how this comparison works, $(2, 7, 9) < (3, 7, 9)$ and $(2, 7, 9) || (3, 5, 2)$.
+To map natural numbers to poset, you need vectors. You cannot do it with a scalars.
+As an example of how this works,
+
+% \includegraphics{distributed-vector-clock-drawing.png}
+% \fig{2}{3}{An example of systems keeping time using vector clocks}
+
+\subsection{Algorithm for Vector Clock}
+
+\begin{algorithm}
+\caption{An algorithm to track vector clocks}
+\begin{algorithmic}
+  \State \underline{$P_i$::} V: array[1 \ldots n] of int
+  \State \underline{init:} all 0's except V[i] = 1;
+  \State $V[i] \gets V[i] + 1$
+\Comment{\underline{for internal event}}
+  \State $V[i] \gets V[i] + 1$
+\Comment{\underline{for send event}}
+  \State Send V with message
+  \State $V \gets max(V, W)$
+\Comment{\underline{for receive event with vector W}}
+  \State $V[i] \gets V[i] + 1$
+\end{algorithmic}
+\end{algorithm}
+
+\begin{proof}
+The proof that this algorithm returns a consistent clock which gives a total order is taken in two parts. \\
+
+\vspace{2mm}
+
+{\bf 1$^{st}$ Part: $e \rightarrow f \Rightarrow V(e) < V(f)$}\\
+\underline{Proof}\\
+This is proven by the vector increasing along each edge in the system diagram.\\
+
+\vspace{5mm}
+
+{\bf 2$^{nd}$ Part: $e \not\to f \Rightarrow V(e) \not< V(f)$} \\
+\underline{Proof} \\
+$e \not\to f \Rightarrow $ there is no path from e to f $\Rightarrow V(f)[i] < V(e)[i]$ \\
+e is on $P_i \wedge$ f is on $P_j \Rightarrow V(e) \not< V(f)$
+\end{proof}
+\underline{Explanation} $P_2$ does not know about $P_1$, so $P_1$`s values for $P_1$ must be larger.
+
+\subsection{Directly Precedes}
+If we only care about direct messages, i.e., no transitivity,
+we can get away with only sending the component for the sending process.
+Each process still stores a full vector with an element for each process.
+
+
+% **** YOUR NOTES GO HERE:
+
+% Some general latex examples and examples making use of the
+% macros follow.
+%**** IN GENERAL, BE BRIEF. LONG SCRIBE NOTES, NO MATTER HOW WELL WRITTEN,
+%**** ARE NEVER READ BY ANYBODY.
+% \section{Introduction}
+% Students in EE 382V are required to scribe lecture notes for one lecture.
+% These lecture notes will be done using the document processing system called Latex.
+% We have posted the file {\em scribe.tex} on the Canvas system. You can run {\tt pdflatex}
+% on that file to generate {\em scribe.pdf}. The remaining document shows usage of
+% some of the commands in Latex.
+
+% \section{All Pairs Shortest Paths}
+
+% The naive and obvious solution to All Pairs Shortest Path(APSP) problem is to
+% run a Single Source Shortest Path algorithm from each starting vertex
+% $v$.  If the graph has arbitrary edge weights, it takes the Bellman-Ford
+% algorithm $O(|E||V|^2)$ time to solve APSP.  But there
+% are better approaches.
+
+% \subsection{Floyd-Warshall Algorithm: Dynamic Programming}
+
+% Label the vertices $1,2,\ldots,n$.
+% Define $d^{(k)}(i,j)$ to be the length of a shortest path from $i$
+% to $j$, using intermediate vertices from \{$1,2,\ldots,k$\} only.
+% Obviously, $d^{(n)}(i,j)$ is the full problem.
+
+% \ldots
+
+% \section{Transitive Closure}
+
+% Our goal is to achieve running time $O(M(n)\log n)$ for APSP where
+% $M(n)$ is the time for $n\times n$ matrix multiplication.  Let's see
+% if we can achieve this for a simpler but related problem, namely
+% {\it Transitive Closure\/}:
+
+% \ldots
+
+% \section*{References}
+% \beginrefs
+% \bibentry{AGM97}{\sc N.~Alon}, {\sc Z.~Galil} and {\sc O.~Margalit},
+% On the Exponent of the All Pairs Shortest Path Problem,
+% {\it Journal of Computer and System Sciences\/}~{\bf 54} (1997),
+% pp.~255--262.
+
+% \bibentry{F76}{\sc M. L. ~Fredman}, New Bounds on the Complexity of the
+% Shortest Path Problem, {\it SIAM Journal on Computing\/}~{\bf 5} (1976),
+% pp.~83-89.
+% \endrefs
+
+
+\end{document}
+
+
+
+
+
