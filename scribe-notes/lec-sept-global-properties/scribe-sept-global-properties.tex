@@ -1,0 +1,275 @@
+%
+% This is the LaTeX template file for lecture notes for EE 382C/EE 361C/EE 382N/etc.
+%
+% To familiarize yourself with this template, the body contains
+% some examples of its use.  Look them over.  Then you can
+% run LaTeX on this file.  After you have LaTeXed this file then
+% you can look over the result either by printing it out with
+% dvips or using xdvi.
+%
+% This template is based on the template for Prof. Sinclair's CS 270.
+
+\documentclass[twoside]{article}
+\usepackage{graphics}
+\setlength{\oddsidemargin}{0.25 in}
+\setlength{\evensidemargin}{-0.25 in}
+\setlength{\topmargin}{-0.6 in}
+\setlength{\textwidth}{6.5 in}
+\setlength{\textheight}{8.5 in}
+\setlength{\headsep}{0.75 in}
+\setlength{\parindent}{0 in}
+\setlength{\parskip}{0.1 in}
+
+%
+% The following commands set up the lecnum (lecture number)
+% counter and make various numbering schemes work relative
+% to the lecture number.
+%
+\newcounter{lecnum}
+\renewcommand{\thepage}{\thelecnum-\arabic{page}}
+\renewcommand{\thesection}{\thelecnum.\arabic{section}}
+\renewcommand{\theequation}{\thelecnum.\arabic{equation}}
+\renewcommand{\thefigure}{\thelecnum.\arabic{figure}}
+\renewcommand{\thetable}{\thelecnum.\arabic{table}}
+
+%
+% The following macro is used to generate the header.
+%
+\newcommand{\lecture}[4]{
+   \pagestyle{myheadings}
+   \thispagestyle{plain}
+   \newpage
+   \setcounter{lecnum}{#1}
+   \setcounter{page}{1}
+   \noindent
+   \begin{center}
+   \framebox{
+      \vbox{\vspace{2mm}
+    \hbox to 6.28in { {\bf EE 382N: Distributed Systems
+                        \hfill Fall 2017} }
+       \vspace{4mm}
+       \hbox to 6.28in { {\Large \hfill Lecture #1: #2  \hfill} }
+       \vspace{2mm}
+       \hbox to 6.28in { {\it Lecturer: #3 \hfill Scribe: #4} }
+      \vspace{2mm}}
+   }
+   \end{center}
+   \markboth{Lecture #1: #2}{Lecture #1: #2}
+   %{\bf Disclaimer}: {\it These notes have not been subjected to the
+   %usual scrutiny reserved for formal publications.  They may be distributed
+   %outside this class only with the permission of the Instructor.}
+   \vspace*{4mm}
+}
+
+%
+% Convention for citations is authors' initials followed by the year.
+% For example, to cite a paper by Leighton and Maggs you would type
+% \cite{LM89}, and to cite a paper by Strassen you would type \cite{S69}.
+% (To avoid bibliography problems, for now we redefine the \cite command.)
+% Also commands that create a suitable format for the reference list.
+\renewcommand{\cite}[1]{[#1]}
+\def\beginrefs{\begin{list}%
+        {[\arabic{equation}]}{\usecounter{equation}
+         \setlength{\leftmargin}{2.0truecm}\setlength{\labelsep}{0.4truecm}%
+         \setlength{\labelwidth}{1.6truecm}}}
+\def\endrefs{\end{list}}
+\def\bibentry#1{\item[\hbox{[#1]}]}
+
+%Use this command for a figure; it puts a figure in wherever you want it.
+%usage: \fig{NUMBER}{SPACE-IN-INCHES}{CAPTION}
+\newcommand{\fig}[3]{
+			\vspace{#2}
+			\begin{center}
+			Figure \thelecnum.#1:~#3
+			\end{center}
+	}
+% Use these for theorems, lemmas, proofs, etc.
+\newtheorem{theorem}{Theorem}[lecnum]
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{claim}[theorem]{Claim}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{definition}[theorem]{Definition}
+\newenvironment{proof}{{\bf Proof:}}{\hfill\rule{2mm}{2mm}}
+
+% **** IF YOU WANT TO DEFINE ADDITIONAL MACROS FOR YOURSELF, PUT THEM HERE:
+
+\begin{document}
+%FILL IN THE RIGHT INFO.
+%\lecture{**LECTURE-NUMBER**}{**DATE**}{**LECTURER**}{**SCRIBE**}
+\lecture{2}{Sept 16}{Vijay Garg}{Robert Pate}
+%\footnotetext{These notes are partially based on those of Nigel Mansell.}
+
+% **** YOUR NOTES GO HERE:
+
+% Some general latex examples and examples making use of the
+% macros follow.
+%**** IN GENERAL, BE BRIEF. LONG SCRIBE NOTES, NO MATTER HOW WELL WRITTEN,
+%**** ARE NEVER READ BY ANYBODY.
+\section{Introduction}
+So far this course has covered clocks, resource allocation with distributed locks, and taking system snapshots. Next we use all of them to build a sensor that can check for some global property. We'll be able to answer questions like "did my system go through a state where property B was true?" and "is my system in deadlock"?
+
+\section{Stable Properties - Deadlock}
+
+\begin{definition}A predicate $B$ is "stable" if once it becomes true it stays true, e.g. deadlock and loss of a token.\end{definition}
+
+\begin{claim}We have a program to detect a stable predicate\end{claim}
+
+How? We will use our established camera/snapshot algorithm to take snapshots of a program. Build a wait-for graph using everyone's state and check if it is cyclic.
+
+Consider a system $S$ where we initiate a snapshot at $S\textsubscript{i}$ and it's finished at $S\textsubscript{f}$ giving us $S^*$ as the snapshot. We'll apply $S^*$ to $B()$ which returns true if deadlock.
+
+Two cases: $B(S^*)$ shows deadlock or it does not.
+
+$B(S^*) \rightarrow B(S_f)$\newline
+$S_f$ is reachable from $B(S^*)$ so it has deadlock
+
+if $\neg B(S^*) \rightarrow \neg B(S_i)$\newline
+There was no deadlock at $S_i$ but it may still happen so we should take more snapshots.
+
+\section{Unstable Properties}
+
+Let's say $B$ $\equiv$ ($P_1$ in CS) $\land$ ($P_2$ in CS)\newline
+(Two processes are in the critical section at once.)
+
+If we take a bunch of snapshots and check $B$ for each then we still won't know if $B$ was ever true. How can we detect this kind of property? When should I take the picture?
+
+\begin{claim}
+If we store the history of each process, we should be able to find one state from each process where we can apply B to find it true.
+\end{claim}
+
+Assume $m$ states per process and $n$ process so the possible states is $m^n$. This is "combinatorial explosion" and is "not good." But it is at least finite!
+
+Can we do better? Let's define the problem clearly.
+
+\begin{definition}
+Global Monitoring Problem / Predicate Detection
+
+Does there exist $G$ such that\newline
+$(G$ is a \textit{Consistent Global State}$) \land B(G)$?
+\end{definition}
+
+\begin{definition}
+Consistent Global State
+
+$\forall i,j$ : $G[i]$ $\|$ $G[j]$
+\end{definition}
+
+\subsection{Simplifying Assumptions}
+
+\begin{enumerate}
+   \item We have vector clocks since we must have them to determine concurrency in "perfect isomorphism"  ( $\|$ )
+   \item $B$ is conjunctive, meaning it's of type  $l_1 \land l_2 \land l_3  \ldots \land l_n$
+   \begin{itemize}
+        \item Thus we can rewrite $B$ to put the local predicate(s) of each process first
+        \item e.g. if $l_1$ and $l_3$ are local to $P_1$ then we rewrite $B$ to be $l_1 \land l_3 \ldots \land l_n$
+        \item And we can combine multiple predicates local to a process
+    \end{itemize}
+\end{enumerate}
+
+\begin{definition}
+Given a conjunctive $B$, does there exist a $G$ such that:
+
+$(G$ is a \textit{Consistent Global State}$) \land \forall_i : l_i [G[i]]$
+\end{definition}
+
+So we find one state from each process. If its local predicate is false then the rest of the predicate must be false and we can ignore that state. We could label his "red" in a diagram.
+
+So say we have a centralized algorithm, it could ignore all the "red" states and only start with the first global state that doesn't have a false predicate in it.
+
+Next we start moving through these states to see if they're actually a "consistent global state." If any events in the happened before the other, it's not consistent. So advance one state on that process and check it for consistency.
+
+Eventually either:
+\begin{itemize}
+    \item A: we find our consistent global state where $B()$ is true OR
+    \item B: we get to the end of the lane and $\negB()$
+\end{itemize}
+
+\section{Algorithm for nonstable conjunctive predicate detection}
+
+\begin{itemize}
+    \item have a centralized checker process
+    \item keep a queue of vector clocks from each process
+    \item find vectors that are \textit{pairwise concurrent} and the predicate is true
+\end{itemize}
+
+\begin{definition}
+Pairwise concurrent = part of a consistent global state in the state based model
+\end{definition}
+
+Each process, $P_i$, whenever the local predicate is true, will send the vector clock to the $checker process$.
+
+Think of colors for vectors, e.g. red means you're less and green you're not. (note red here is going to mean a different thing than the red mentioned earlier).
+
+$Checker Process steps:$
+var n queues; init with the vectors all painted red
+
+$while$ there exists a queue with a red vector at the head of the queue:
+    \begin{enumerate}
+        \item throw away that vector
+        \item paint the next vector, $v$, green
+        \item compare $v$ to any green vectors at the top of the other queues
+            \begin{enumerate}
+                 \item if $v$ is less than any of them, paint it red
+                   \item if there's no next vector, end
+                   \item if $v$ is greater than some green vector $u$, paint $u$ red
+        \end{enumerate}
+    \end{enumerate}
+
+The goal here is to get everyone concurrent, and anyone less than another means it happened before and can be thrown out.
+
+We want to wait for the next vector of a process that's still running.
+
+\subsection{Complexity}
+
+Message Complexity: overhead for sending vectors is $O(m n) messages$
+
+Time Complexity: $O(m n)$ loops, $O(mn^2)$ time to make green, $O(n)$ time to compare vectors.
+
+Space Complexity: $O(mn^2)$ integers.
+
+\section{Weak Conjunctive Predicate Detection Algorithm (WCP)}
+
+We can make this more practical by sending less vector clocks.
+
+\begin{enumerate}
+    \item Currently we send a vector clock each time the predicate is true
+    \item Assume no messages were sent or received since the last time we sent our clock
+    \item Then the clock would not have changed!
+    \item So we should not send the same clock multiple times.
+\end{enumerate}
+
+\textbf{For process $P_i:$}\newline
+Whenever local predicate becomes true for the first time in any \textit{message interval}, send the vector to the checker process.
+
+(\textit{Message interval} means the time between messages to or from other processes.)
+
+\subsection{Can we improve on WCP?}
+
+Can we improve this to handle ORs?
+
+We can convert any boolean expression to the \textit{Conjunctive Normal Form (CNF)} by distributing the ORs into separate predicates.
+
+Example:\newline
+$B\equiv(x=3)\land(y=5)\lor(z=5))$
+converts to:\newline
+Predicate 1: $(x=3) \land (y=5)$
+Predicate 2: $(x=3) \land (z=5)$
+
+Furthermore any negation can be pushed inside the predicates so that we only have $\land$ and $\lor$ left which can be converted to CNF.
+
+Now we can run the algorithm for each predicate, but we've glossed over the real problem. The conversion to CNF can produce huge lists of predicates!
+
+\subsection{NP Complete Proof}
+
+\textbf{Theorem:}\newline
+Given a boolean expression $B$ and a computation $(S, \rightarrow)$, the problem of detecting $\exists$ consistent global state of $(S, \rightarrow)$ $s.t.$ $B(G)$ is NP-Complete (even when it's not distributed across processes).
+
+\textbf{Proof that PRED is harder than SAT:}\newline
+If you're trying to find a consistent cut where a predicate is true, that's the same as the Boolean Satisfiability Problem (SAT) where you try to find a satisfying assignment for a boolean formula. SAT has been proved NP-Complete and therefore this is too.
+
+\section{Distributed / Token based Algorithm for Predicate Detection}
+
+This section will be covered in the October lecture.
+
+\end{document}
