@@ -11,6 +11,7 @@
 
 \documentclass[twoside]{article}
 \usepackage{graphics}
+\usepackage{amsmath}
 \setlength{\oddsidemargin}{0.25 in}
 \setlength{\evensidemargin}{-0.25 in}
 \setlength{\topmargin}{-0.6 in}
@@ -182,7 +183,7 @@ Next we start moving through these states to see if they're actually a "consiste
 Eventually either:
 \begin{itemize}
     \item A: we find our consistent global state where $B()$ is true OR
-    \item B: we get to the end of the lane and $\negB()$
+    \item B: we get to the end of the lane and $\neg B()$
 \end{itemize}
 
 \section{Algorithm for nonstable conjunctive predicate detection}
@@ -201,8 +202,8 @@ Each process, $P_i$, whenever the local predicate is true, will send the vector 
 
 Think of colors for vectors, e.g. red means you're less and green you're not. (note red here is going to mean a different thing than the red mentioned earlier).
 
-$Checker Process steps:$
-var n queues; init with the vectors all painted red
+\textbf{Checker Process steps:}
+$var n queues; init with the vectors all painted red$
 
 $while$ there exists a queue with a red vector at the head of the queue:
     \begin{enumerate}
@@ -268,8 +269,70 @@ Given a boolean expression $B$ and a computation $(S, \rightarrow)$, the problem
 \textbf{Proof that PRED is harder than SAT:}\newline
 If you're trying to find a consistent cut where a predicate is true, that's the same as the Boolean Satisfiability Problem (SAT) where you try to find a satisfying assignment for a boolean formula. SAT has been proved NP-Complete and therefore this is too.
 
-\section{Distributed / Token based Algorithm for Predicate Detection}
+\section{Distributed / Token Based Conjunctive Predicate Detection Algorithm}
 
-This section will be covered in the October lecture.
+For the distributed version, we won't use a checker process. Each process will have its own vector queue. We still need one process to check the queue, but we can distributed that task with a token.
+
+The given checker process only needs the head of the queue so we can bundle that with the token.
+
+Assumptions:
+\begin{itemize}
+\item We'll call pairwise concurrent vectors green
+\item We'll call vectors that happened before red
+\item Mattern vector clocks are in use
+\item Every vector is local snapshot when the predicate was true
+\end{itemize}
+
+Consider the matrix of vectors we had when centralized:
+
+\[
+    \bordermatrix{ pid \ status & vector \ clock \ queue  \cr
+      p1 \ G & 1...n  \cr
+      p2 \ R & 1...n \cr
+      p3 \ G & 1...n } \qquad
+\]
+
+
+If these were all green then we're done. But we're not so we need to advance $p_2$.
+
+In the distributed version, we don't need every full vector from every process. We'll have our own and the head of the others.
+
+\[
+    \bordermatrix{ pid \ status & head \ of \ vector \ clock \ queue  \cr
+      p1 \ G & .  \cr
+      p2 \ R & . \cr
+      p3 \ G & . } \qquad
+\]
+
+The process with the token advances until it finds a green in its queue. If there are other reds, it sends the token to any one of them. If there are no reds, then we're done.
+
+We can make this yet more efficient since we're trying to answer the question "Is my value the biggest in my column?"
+
+\[
+    \bordermatrix{ pid \ color & p1 clock & p2 clock & p3 clock &  \cr
+      p1 \ G & 4 & 4 & 12 \cr
+      p2 \ R & 7 & 9 & 15 \cr
+      p3 \ G & 3 & 7 & 11 } \qquad
+\]
+
+So we improve by only storing:
+
+\begin{enumerate}
+    \item diagonal of the matrix (our local clock values)
+    \item max value from each column of the diagonal (max anyone knows)
+    \item color of each
+\end{enumerate}
+
+\textbf{Complexity}:
+
+number of token messages: $O(mn)$ where $n$ processes and $m$ worst case vectors
+
+message size: $O(n)$ (this is a big improvement over $O(n^2)$
+
+space: $O(m.n)$
+
+Every time a token message is received, one vector is removed.
+
+Further improvement: just keep the max from each column. I only need to know if i am that max or not which is already the color.
 
 \end{document}
