@@ -1,0 +1,155 @@
+%
+% This is the LaTeX template file for lecture notes for EE 382C/EE 361C.
+%
+% To familiarize yourself with this template, the body contains
+% some examples of its use.  Look them over.  Then you can
+% run LaTeX on this file.  After you have LaTeXed this file then
+% you can look over the result either by printing it out with
+% dvips or using xdvi.
+%
+% This template is based on the template for Prof. Sinclair's CS 270.
+
+\documentclass[twoside]{article}
+\usepackage{graphics}
+\setlength{\oddsidemargin}{0.25 in}
+\setlength{\evensidemargin}{-0.25 in}
+\setlength{\topmargin}{-0.6 in}
+\setlength{\textwidth}{6.5 in}
+\setlength{\textheight}{8.5 in}
+\setlength{\headsep}{0.75 in}
+\setlength{\parindent}{0 in}
+\setlength{\parskip}{0.1 in}
+
+%
+% The following commands set up the lecnum (lecture number)
+% counter and make various numbering schemes work relative
+% to the lecture number.
+%
+\newcounter{lecnum}
+\renewcommand{\thepage}{\thelecnum-\arabic{page}}
+\renewcommand{\thesection}{\thelecnum.\arabic{section}}
+\renewcommand{\theequation}{\thelecnum.\arabic{equation}}
+\renewcommand{\thefigure}{\thelecnum.\arabic{figure}}
+\renewcommand{\thetable}{\thelecnum.\arabic{table}}
+
+%
+% The following macro is used to generate the header.
+%
+\newcommand{\lecture}[4]{
+   \pagestyle{myheadings}
+   \thispagestyle{plain}
+   \newpage
+   \setcounter{lecnum}{#1}
+   \setcounter{page}{1}
+   \noindent
+   \begin{center}
+   \framebox{
+      \vbox{\vspace{2mm}
+    \hbox to 6.28in { {\bf EE 382V: Parallel Algorithms
+                        \hfill Fall 2017} }
+       \vspace{4mm}
+       \hbox to 6.28in { {\Large \hfill Lecture #1: #2  \hfill} }
+       \vspace{2mm}
+       \hbox to 6.28in { {\it Lecturer: #3 \hfill Scribe: #4} }
+      \vspace{2mm}}
+   }
+   \end{center}
+   \markboth{Lecture #1: #2}{Lecture #1: #2}
+   %{\bf Disclaimer}: {\it These notes have not been subjected to the
+   %usual scrutiny reserved for formal publications.  They may be distributed
+   %outside this class only with the permission of the Instructor.}
+   \vspace*{4mm}
+}
+
+%
+% Convention for citations is authors' initials followed by the year.
+% For example, to cite a paper by Leighton and Maggs you would type
+% \cite{LM89}, and to cite a paper by Strassen you would type \cite{S69}.
+% (To avoid bibliography problems, for now we redefine the \cite command.)
+% Also commands that create a suitable format for the reference list.
+\renewcommand{\cite}[1]{[#1]}
+\def\beginrefs{\begin{list}%
+        {[\arabic{equation}]}{\usecounter{equation}
+         \setlength{\leftmargin}{2.0truecm}\setlength{\labelsep}{0.4truecm}%
+         \setlength{\labelwidth}{1.6truecm}}}
+\def\endrefs{\end{list}}
+\def\bibentry#1{\item[\hbox{[#1]}]}
+
+%Use this command for a figure; it puts a figure in wherever you want it.
+%usage: \fig{NUMBER}{SPACE-IN-INCHES}{CAPTION}
+\newcommand{\fig}[3]{
+			\vspace{#2}
+			\begin{center}
+			Figure \thelecnum.#1:~#3
+			\end{center}
+	}
+% Use these for theorems, lemmas, proofs, etc.
+\newtheorem{theorem}{Theorem}[lecnum]
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{claim}[theorem]{Claim}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{definition}[theorem]{Definition}
+\newenvironment{proof}{{\bf Proof:}}{\hfill\rule{2mm}{2mm}}
+
+% **** IF YOU WANT TO DEFINE ADDITIONAL MACROS FOR YOURSELF, PUT THEM HERE:
+
+\begin{document}
+%FILL IN THE RIGHT INFO.
+%\lecture{**LECTURE-NUMBER**}{**DATE**}{**LECTURER**}{**SCRIBE**}
+\lecture{15}{Consensus in Asynchronous Systems}{Vijay Garg}{Dale Pedzinski}
+
+
+% **** YOUR NOTES GO HERE:
+
+% Some general latex examples and examples making use of the
+% macros follow.
+%**** IN GENERAL, BE BRIEF. LONG SCRIBE NOTES, NO MATTER HOW WELL WRITTEN,
+%**** ARE NEVER READ BY ANYBODY.
+\section{Consensus in Asynchronous Systems}
+In this lecture, we discussed the Fischer, Lynch and Paterson result, which explains that it is impossible for an asynchronous system to reach a consensus, if the system experiences a fault. 
+
+\section{Definitions}
+\begin{itemize}
+  \item Fischer, Lynch and Paterson(FLP) : there is no protocol that satisfies agreement, non-triviality, and termination in an asynchronous system in presence of one fault.
+  \item Fault: any failure in the system like hardware failure. Does not include a delayed response
+  \item Crash Model: a model in how the system fails, either unannounced or announced. This section focuses on unannounced 
+  \item Omission Model: a model where a node omits or ignores some messages.
+  \item Byzantine Model: a model where a node acts as a lone wolf in the system
+  \item Asynchronous: a process or message delivery that takes an arbitrary  but finite time to complete or be delivered
+  \end{itemize}
+\section{Fischer, Lynch and Paterson}
+  The theorem of Fischer, Lynch and Paterson is there is no deterministic algorithm to solve binary consensus in an asynchronous system with 2 or more processes in presence of even one unannounced crash. 
+\subsection{Assumptions of System}
+  Throughout the theorem, we have a set of assumptions about the environment:
+\begin{itemize}
+  \item Initial Independence: Every process choses their input so every input vector is possible. 
+  \item Disjoint Events:  Disjoint events that commute will have the same global state.
+  \item Asynchronous of events: Events in the environment are asynchronous
+\end{itemize}
+\subsection{Requirements}
+  The model of this problem are a faulty process is one that eventually will complete and if at most one process is faulty. However, since the system is reliable all messages sent to the non-faulty processes are eventually delivered.
+
+Lastly, the requirements of this problem can be summarized from 
+\begin{itemize}
+\item Agreement: All correct process decide on the same value or the book defines it as: "Two non-faulty processes cannot commit on different values."
+  \item Validity: Value decided by the steam must be proposed by someone 
+  \item Non-triviality: Both 0 and 1 possible outcomes of the protocol or the book defines it as: "Both values 0 and 1 should be possible outcomes. This requirement eliminates protocols that return a fixed value 0 or 1 independent of the initial input."
+  \item Termination: a non-faulty process decides in finite time or the book defines it as: "A non-faulty process decides in finite time."
+\end{itemize}
+\section{Binary Consensus Problem}
+  In class we discussed two types of environments with regards to the Binary Consensus Problem, basically all types discussed that have one figure will not work. The first example discussed was around the Democratic based system, where it's failure will break while the system waits on a consensus. The other system Leader or dictatorship, will work if any node other than the leader failures but since we can't control the failures. This also fails.
+
+The basis of the problem is any environment thought of will fail if there is one failure. 
+\subsection{Every Protocol has at least one initial bi-valent global state}
+ Proof: If they only differ in only one process there exists two neighboring global states G0 and G1 where G0 is 0-valent and G1 is 1-valent.
+Look at Figure 15.2 in the book for visual description
+\subsection{There Exists a strategy for the adversary to keep the protocol in a bi-valent state}
+ Proof: For any protocol there exists a critical state for it to go from bi-valent to univalent
+Look at Figure 15.2 in the book for visual description
+\section*{References}
+ Referenced the Class book Chapter 15
+\end{document}
+
+
+\end{document}
